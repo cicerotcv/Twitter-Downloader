@@ -1,0 +1,6 @@
+.database
+.ipynb_checkpoints/*
+__pycache__/*
+auth.json
+
+
