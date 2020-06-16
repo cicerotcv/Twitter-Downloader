@@ -14,19 +14,16 @@ try:
     import tweepy
 except:
     system("pip install tweepy")  # windows
-finally:
     import tweepy
 try:
     from wordcloud import WordCloud
 except:
     system("pip install wordcloud")  # windows
-finally:
     from wordcloud import WordCloud
 try:
     from arrow import Arrow
 except:
     system("pip install arrow") # windows
-finally:
     from arrow import Arrow
 
 def generateAPI(credentials_filename:str="auth.json"):
