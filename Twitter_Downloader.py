@@ -23,12 +23,7 @@ except:
 try:
     from arrow import Arrow
 except:
-<<<<<<< HEAD
     system("pip install arrow")  # windows
-finally:
-=======
-    system("pip install arrow") # windows
->>>>>>> b33441f2b78751db9b8331f8e7a23e38cbba1fb1
     from arrow import Arrow
 
 
@@ -93,27 +88,20 @@ class Tweet():
         media_collection = []
         retweets_media_collection = []
 
-        def loopOverMediaItems(iterable_status:dict):
-            local_collection = []
-            for media in iterable_status["extended_entities"]["media"]:
-                local_collection.append(media["media_url_https"])
-                if media["type"] == "video" or media["type"] == "animated_gif":
-                    local_collection.append(get_video_url(media))
-            return local_collection
-        
         if "media" in self.metadata["entities"]:
             # if post has media files
             media_collection = loopOverMediaItems(self.metadata)
         elif "retweeted_status" in self.metadata:
             # if retweet has media files
-            media_collection = loopOverMediaItems(self.metadata["retweeted_status"])
+            media_collection = loopOverMediaItems(
+                self.metadata["retweeted_status"])
         else:
             # if no media at all
-            return 
+            return
 
         # if media and/or retweet's media
         return media_collection + [item for item in retweets_media_collection if item not in media_collection]
-    
+
     def getText(self) -> str:
         self.text = self.metadata["full_text"]
         if "retweeted_status" in self.metadata:
@@ -123,7 +111,7 @@ class Tweet():
     def saveMedia(self):
         assert_output(user_id=self.userName)
         for index, url in enumerate(self.medias):
-            extension = re.search("\.[mjp][pn][4g]", url)[0]
+            extension = re.search(r"\.[mjp][pn][4g]", url)[0]
             filename = f"{self.filename}_{index}"
             filePath = f".database/.{self.userName}/{filename}{extension}"
             mediaData = requests.get(url).content
@@ -164,7 +152,31 @@ class Tweet():
         return this_dict
 
 
+class User():
+    """Responsible for storing all downloaded and/or loaded from disk user data"""
+
+    def __init__(self, screen_name):
+        self.screenName: str = screen_name
+        self.description: str
+        self.userName: str
+        self.tweets: TweetList
+        self._checkpoint: Checkpoint = Checkpoint(self.screenName)
+
+    def save(self):
+        self._checkpoint.saveCheckpoint(self.tweets)
+
+    def load(self):
+        self.tweets = self._checkpoint.loadCheckpoint()
+
+
+class TweetList(list):
+    """Responsible for dealing with list of tweet's metadata"""
+    pass
+
+
 class Checkpoint():
+    """Responsible for loadings and savings such as loading """
+
     def __init__(self, userName: str):
         self.screen_name = userName
 
@@ -172,7 +184,8 @@ class Checkpoint():
         """Tries to load all downloaded tweets from user's directory"""
         try:
             with open(f".database/.{self.screen_name}/user_data.checkpoint", 'r') as checkpointFile:
-                backup = [json.loads(line) for line in checkpointFile.readlines()]
+                backup = [json.loads(line)
+                          for line in checkpointFile.readlines()]
         except:
             backup = []
         finally:
@@ -201,3 +214,12 @@ def assert_output(user_id: str):
     if f".{user_id}" not in listdir(".database"):
         path = f".database/.{user_id}"
         mkdir(path)
+
+
+def loopOverMediaItems(iterable_status: dict):
+    local_collection = []
+    for media in iterable_status["extended_entities"]["media"]:
+        local_collection.append(media["media_url_https"])
+        if media["type"] == "video" or media["type"] == "animated_gif":
+            local_collection.append(get_video_url(media))
+    return local_collection
