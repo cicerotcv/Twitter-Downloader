@@ -14,19 +14,21 @@ try:
     import tweepy
 except:
     system("pip install tweepy")  # windows
-finally:
     import tweepy
 try:
     from wordcloud import WordCloud
 except:
     system("pip install wordcloud")  # windows
-finally:
     from wordcloud import WordCloud
 try:
     from arrow import Arrow
 except:
+<<<<<<< HEAD
     system("pip install arrow")  # windows
 finally:
+=======
+    system("pip install arrow") # windows
+>>>>>>> b33441f2b78751db9b8331f8e7a23e38cbba1fb1
     from arrow import Arrow
 
 
