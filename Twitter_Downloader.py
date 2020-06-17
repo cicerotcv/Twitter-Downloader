@@ -56,9 +56,10 @@ class Tweet():
         self.id = status_json["id"]
         self.userName = status_json["user"]["screen_name"]
         self.userID = status_json["user"]["id"]
-        self.creation = Arrow.strptime(
-            status_json["created_at"], "%a %b %d %H:%M:%S %z %Y").timestamp
+        # creation converts, e.g. "Thu May 25 15:18:25 +0000 2017" to int timestamp
+        self.creation = Arrow.strptime(status_json["created_at"], "%a %b %d %H:%M:%S %z %Y").timestamp
         self.text = status_json["full_text"]
+        # source converts the html "a" tag string to its inner text
         self.source = re.search(">.*?<", status_json["source"])[0].strip("><")
         self.favoriteCount = status_json["favorite_count"]
         self.retweets = status_json["retweet_count"]
@@ -73,18 +74,22 @@ class Tweet():
 
     # getters
     def getMentions(self) -> list:
+        """Searches for mentions inside status' json content"""
         if self.metadata["entities"]["user_mentions"]:
             return [mention["screen_name"] for mention in self.metadata["entities"]["user_mentions"]]
 
     def getHashtags(self) -> list:
+        """Searches for hashtags inside status' json content"""
         if self.metadata["entities"]["hashtags"]:
             return [hashtag['text'] for hashtag in self.metadata["entities"]["hashtags"]]
 
     def getUrls(self) -> list:
+        """Searches for shared urls inside status' json content"""
         if self.metadata["entities"]["urls"]:
             return [url["expanded_url"] for url in self.metadata["entities"]["urls"]]
 
     def getMedia(self) -> list:
+        """Searches for shared media items inside target's status or target's retweeted status."""
         media_collection = []
         retweets_media_collection = []
 
@@ -103,12 +108,14 @@ class Tweet():
         return media_collection + [item for item in retweets_media_collection if item not in media_collection]
 
     def getText(self) -> str:
+        """Searches for shared text inside target's status or target's retweeted status."""
         self.text = self.metadata["full_text"]
         if "retweeted_status" in self.metadata:
             self.text += "\n" + self.metadata["retweeted_status"]["full_text"]
 
     # downloaders
     def saveMedia(self):
+        """Downlaod full list of media items."""
         assert_output(user_id=self.userName)
         for index, url in enumerate(self.medias):
             extension = re.search(r"\.[mjp][pn][4g]", url)[0]
@@ -157,6 +164,7 @@ class User():
 
     def __init__(self, screen_name):
         self.screenName: str = screen_name
+        self.user_id: int
         self.description: str
         self.userName: str
         self.tweets: TweetList
@@ -167,6 +175,12 @@ class User():
 
     def load(self):
         self.tweets = self._checkpoint.loadCheckpoint()
+
+    def fetchData(self, api: tweepy.API):
+        pass
+
+    def loadLatest(self):
+        pass
 
 
 class TweetList(list):
